@@ -221,5 +221,6 @@ namespace STreeD {
 	template class BranchCache<EqOpp>;
 	template class BranchCache<PrescriptivePolicy>;
 	template class BranchCache<SurvivalAnalysis>;
+	template class BranchCache<CoxSurvivalAnalysis>;
 
 }

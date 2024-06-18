@@ -126,10 +126,14 @@ namespace STreeD {
 		double GetLabel(const D2SASol& costs, int count) const;
 		
 		// Compute the training score (average loss)
-		inline double ComputeTrainScore(double train_value) const { return train_value / train_summary.size; }
+		inline double ComputeTrainScore(double train_value) const {
+            return train_value / train_summary.size;
+        }
 		
 		// Compute the test score on the training data (average loss)
-		inline double ComputeTrainTestScore(double train_value) const { return train_value / train_summary.size; }
+		inline double ComputeTrainTestScore(double train_value) const {
+            return train_value / train_summary.size;
+        }
 		
 		// Compute the test score on the test data (average loss)
 		inline double ComputeTestTestScore(double test_value) const { return test_value / test_summary.size; }

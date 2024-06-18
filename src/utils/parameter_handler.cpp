@@ -155,7 +155,6 @@ namespace STreeD {
         for (int i = 1; i < argc; i += 2) {
             if (argv[i][0] != '-') { std::cout << "Parsing error: expected a parameter name with a '-' in the beggining, instead found this: " << argv[i][0] << "\n"; exit(1); }
             std::string name(argv[i] + 1); //skip the zero position character since it is expected to be a '-' character
-
             if (parameters_string_.count(name) == 1) {
                 std::string value = argv[i + 1];
                 SetStringParameter(name, value);

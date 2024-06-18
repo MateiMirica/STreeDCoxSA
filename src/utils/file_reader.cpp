@@ -166,5 +166,6 @@ namespace STreeD {
 	template void FileReader::ReadData<EqOpp>(ParameterHandler&, AData&, ADataView&, ADataView&, std::default_random_engine*);
 	template void FileReader::ReadData<PrescriptivePolicy>(ParameterHandler&, AData&, ADataView&, ADataView&, std::default_random_engine*);
 	template void FileReader::ReadData<SurvivalAnalysis>(ParameterHandler&, AData&, ADataView&, ADataView&, std::default_random_engine*);
+	template void FileReader::ReadData<CoxSurvivalAnalysis>(ParameterHandler&, AData&, ADataView&, ADataView&, std::default_random_engine*);
 
 }

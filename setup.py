@@ -10,12 +10,12 @@ __version__ = "1.2.3"
 
 ext_modules = [
     Pybind11Extension(package_name + '.' + extension_name,
-        sorted(glob("src/**/*.cpp", recursive = True)),
-        include_dirs = ["include"],
-        define_macros = [('VERSION_INFO', __version__)], # passing in the version to the compiled code
-        language='c++',
-        cxx_std=17
-    )
+                      sorted(glob("src/**/*.cpp", recursive = True)),
+                      include_dirs = ["include"],
+                      define_macros = [('VERSION_INFO', __version__)], # passing in the version to the compiled code
+                      language='c++',
+                      cxx_std=17
+                      )
 ]
 
 setup(

@@ -76,5 +76,6 @@ namespace STreeD {
 	template class CostStorage<EqOpp>;
 	template class CostStorage<PrescriptivePolicy>;
 	template class CostStorage<SurvivalAnalysis>;
+	template class CostStorage<CoxSurvivalAnalysis>;
 
 }

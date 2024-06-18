@@ -1,5 +1,6 @@
 #include "solver/solver.h"
 #include "utils/debug.h"
+#include <iostream>
 
 namespace STreeD {
 
@@ -55,6 +56,8 @@ namespace STreeD {
 		stopwatch.Initialise(parameters.GetFloatParameter("time"));
 		InitializeSolver(_train_data);
 
+
+
 		Solver<OT>::Context root_context;
 
 		// if no UB is given yet, compute the leaf solutions in the root node and use these as UB
@@ -79,7 +82,7 @@ namespace STreeD {
 			auto sol = SolveSubTree(train_data, root_context, global_UB, max_depth, num_nodes );
 			AddSols<OT>(task, 0, result, sol);
 		}
-		
+
 		// Evaluate the results
 		auto solver_result = std::make_shared<SolverTaskResult<OT>>();
 		solver_result->is_proven_optimal = stopwatch.IsWithinTimeLimit();
@@ -1020,5 +1023,6 @@ namespace STreeD {
 	template class Solver<EqOpp>;
 	template class Solver<PrescriptivePolicy>;
 	template class Solver<SurvivalAnalysis>;
+	template class Solver<CoxSurvivalAnalysis>;
 }
 

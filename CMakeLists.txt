@@ -66,6 +66,19 @@ set(STREED_HEADER_FILES
 	${PROJECT_INCLUDE_DIR}/tasks/eq_opp.h
 	${PROJECT_INCLUDE_DIR}/tasks/prescriptive_policy.h
 	${PROJECT_INCLUDE_DIR}/tasks/survival_analysis.h
+	${PROJECT_INCLUDE_DIR}/tasks/cox_survival_analysis.h
+	${PROJECT_INCLUDE_DIR}/tasks/cox_regression/Eigen/Core
+	${PROJECT_INCLUDE_DIR}/tasks/cox_regression/constants.h
+	${PROJECT_INCLUDE_DIR}/tasks/cox_regression/coxnet.h
+	${PROJECT_INCLUDE_DIR}/tasks/cox_regression/coxnet_wrapper.h
+	${PROJECT_INCLUDE_DIR}/tasks/cox_regression/data.h
+	${PROJECT_INCLUDE_DIR}/tasks/cox_regression/error.h
+	${PROJECT_INCLUDE_DIR}/tasks/cox_regression/fit-object.h
+	${PROJECT_INCLUDE_DIR}/tasks/cox_regression/fit_params.h
+	${PROJECT_INCLUDE_DIR}/tasks/cox_regression/fit_result.h
+	${PROJECT_INCLUDE_DIR}/tasks/cox_regression/ordered_dict.h
+	${PROJECT_INCLUDE_DIR}/tasks/cox_regression/parameters.h
+	${PROJECT_INCLUDE_DIR}/tasks/cox_regression/soft_threshold.h
 
 	${PROJECT_INCLUDE_DIR}/tasks/accuracy/accuracy.h
 	${PROJECT_INCLUDE_DIR}/tasks/accuracy/cost_complex_accuracy.h
@@ -104,11 +117,10 @@ set(STREED_SRC_FILES
 	${PROJECT_SOURCE_DIR}/tasks/eq_opp.cpp
 	${PROJECT_SOURCE_DIR}/tasks/prescriptive_policy.cpp
 	${PROJECT_SOURCE_DIR}/tasks/survival_analysis.cpp
+	${PROJECT_SOURCE_DIR}/tasks/cox_survival_analysis.cpp
 
 	${PROJECT_SOURCE_DIR}/tasks/accuracy/accuracy.cpp
 	${PROJECT_SOURCE_DIR}/tasks/accuracy/cost_complex_accuracy.cpp
-
-	${STREED_HEADER_FILES}
 )
 
 if (CMAKE_BUILD_TYPE STREQUAL Release)

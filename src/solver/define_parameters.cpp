@@ -21,7 +21,8 @@ namespace STreeD {
 			"accuracy",
 			"Main Parameters",
 			{"accuracy", "cost-complex-accuracy", "f1-score", "group-fairness", "survival-analysis",
-			"equality-of-opportunity", "cost-sensitive", "prescriptive-policy", "instance-cost-sensitive"}
+             "cox-survival-analysis", "equality-of-opportunity", "cost-sensitive", "prescriptive-policy",
+             "instance-cost-sensitive"}
 		);
 
 		parameters.DefineBooleanParameter
@@ -136,6 +137,14 @@ namespace STreeD {
 			1.0 //max value
 		);
 
+        parameters.DefineFloatParameter
+        (
+                "l1-ratio",
+                "The l1 ration for path regularization",
+                -1, // default value - hypertune parameter
+                "Objective Parameters"
+        );
+
 		parameters.DefineBooleanParameter
 		(
 			"stratify",
@@ -195,14 +204,21 @@ namespace STreeD {
 			DBL_MAX // max
 		);
 
-		parameters.DefineStringParameter
-		(
-			"feature-ordering",
-			"Feature ordering strategy used to determine the order in which features will be inspected in each node.",
-			"in-order", //default value
-			"Algorithmic Parameters",
-			{ "in-order", "gini" }
-		);
+        parameters.DefineStringParameter(
+                "feature-ordering",
+                "Feature ordering strategy used to determine the order in which features will be inspected in each node.",
+                "in-order", //default value
+                "Algorithmic Parameters",
+                { "in-order", "gini" }
+        );
+
+        parameters.DefineStringParameter(
+                "survival-validation",
+                "Validation technique for survival analysis.",
+                "log-like", //default value
+                "Task-specific Parameters",
+                { "log-like", "c-index", "ibs" }
+        );
 
 		parameters.DefineIntegerParameter
 		(

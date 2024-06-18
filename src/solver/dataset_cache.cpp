@@ -234,5 +234,6 @@ namespace STreeD {
 	template class DatasetCache<EqOpp>;
 	template class DatasetCache<PrescriptivePolicy>;
 	template class DatasetCache<SurvivalAnalysis>;
+	template class DatasetCache<CoxSurvivalAnalysis>;
 
 }

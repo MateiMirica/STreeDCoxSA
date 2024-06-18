@@ -459,5 +459,6 @@ namespace STreeD {
 	template class TerminalSolver<EqOpp>;
 	template class TerminalSolver<PrescriptivePolicy>;
 	template class TerminalSolver<SurvivalAnalysis>;
+	template class TerminalSolver<CoxSurvivalAnalysis>;
 
 }

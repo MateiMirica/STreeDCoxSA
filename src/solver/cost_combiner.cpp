@@ -483,5 +483,6 @@ namespace STreeD {
 	template class CostCalculator<EqOpp>;
 	template class CostCalculator<PrescriptivePolicy>;
 	template class CostCalculator<SurvivalAnalysis>;
-	
+	template class CostCalculator<CoxSurvivalAnalysis>;
+
 }

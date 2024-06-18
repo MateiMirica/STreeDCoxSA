@@ -10,66 +10,69 @@ https://bitbucket.org/EmirD/murtree
 using namespace std;
 
 int main(int argc, char* argv[]) {
-	STreeD::ParameterHandler parameters = STreeD::ParameterHandler::DefineParameters();
+    STreeD::ParameterHandler parameters = STreeD::ParameterHandler::DefineParameters();
 
-	if (argc > 1) {
-		parameters.ParseCommandLineArguments(argc, argv);
-	} else {
-		cout << "No parameters specified." << endl << endl;
-		parameters.PrintHelpSummary();
-		exit(1);
-	}
+    if (argc > 1) {
+        parameters.ParseCommandLineArguments(argc, argv);
+    } else {
+        cout << "No parameters specified." << endl << endl;
+        parameters.PrintHelpSummary();
+        exit(1);
+    }
 
-	if (parameters.GetBooleanParameter("verbose")) { parameters.PrintParameterValues(); }
-	std::default_random_engine rng;
-	if (parameters.GetIntegerParameter("random-seed") == -1) { 
-		rng = std::default_random_engine(int(time(0)));
-	} else { 
-		rng = std::default_random_engine(int(parameters.GetIntegerParameter("random-seed")));
-	}
+    if (parameters.GetBooleanParameter("verbose")) { parameters.PrintParameterValues(); }
+    std::default_random_engine rng;
+    if (parameters.GetIntegerParameter("random-seed") == -1) {
+        rng = std::default_random_engine(int(time(0)));
+    } else {
+        rng = std::default_random_engine(int(parameters.GetIntegerParameter("random-seed")));
+    }
 
 
-	parameters.CheckParameters();
-	bool verbose = parameters.GetBooleanParameter("verbose");
-	
-	STreeD::AData data(int(parameters.GetIntegerParameter("max-num-features")));
-	STreeD::ADataView train_data, test_data;
-	
-	// Initialize the solver and the data based on the optimization task at hand
-	STreeD::Stopwatch stopwatch;
-	stopwatch.Initialise(0);
-	
-	STreeD::AbstractSolver* solver;
-	std::string task = parameters.GetStringParameter("task");
-	if (verbose) { std::cout << "Reading data...\n"; }
-	if (task == "accuracy") {
-		solver = new STreeD::Solver<STreeD::Accuracy>(parameters, &rng);
-		STreeD::FileReader::ReadData<STreeD::Accuracy>(parameters, data, train_data, test_data, &rng);
-	} else if (task == "cost-complex-accuracy") {
-		solver =  new STreeD::Solver<STreeD::CostComplexAccuracy>(parameters, &rng);
-		STreeD::FileReader::ReadData<STreeD::CostComplexAccuracy>(parameters, data, train_data, test_data, &rng);
-	} else if (task == "cost-sensitive") {
-		solver =  new STreeD::Solver<STreeD::CostSensitive>(parameters, &rng);
-		STreeD::FileReader::ReadData<STreeD::CostSensitive>(parameters, data, train_data, test_data, &rng);
-	} else if (task == "instance-cost-sensitive") {
-		solver = new STreeD::Solver<STreeD::InstanceCostSensitive>(parameters, &rng);
-		STreeD::FileReader::ReadData<STreeD::InstanceCostSensitive>(parameters, data, train_data, test_data, &rng);
-	} else if (task == "f1-score") {
-		solver =  new STreeD::Solver<STreeD::F1Score>(parameters, &rng);
-		STreeD::FileReader::ReadData<STreeD::F1Score>(parameters, data, train_data, test_data, &rng);
-	} else if (task == "group-fairness") {
-		solver =  new STreeD::Solver<STreeD::GroupFairness>(parameters, &rng);
-		STreeD::FileReader::ReadData<STreeD::GroupFairness>(parameters, data, train_data, test_data, &rng);
-	} else if (task == "equality-of-opportunity") {
-		solver =  new STreeD::Solver<STreeD::EqOpp>(parameters, &rng);
-		STreeD::FileReader::ReadData<STreeD::EqOpp>(parameters, data, train_data, test_data, &rng);
-	} else if (task == "prescriptive-policy") {
-		solver =  new STreeD::Solver<STreeD::PrescriptivePolicy>(parameters, &rng);
-		STreeD::FileReader::ReadData<STreeD::PrescriptivePolicy>(parameters, data, train_data, test_data, &rng);
-	} else if (task == "survival-analysis") {
-		solver = new STreeD::Solver<STreeD::SurvivalAnalysis>(parameters, &rng);
-		STreeD::FileReader::ReadData<STreeD::SurvivalAnalysis>(parameters, data, train_data, test_data, &rng);
-	} else {
+    parameters.CheckParameters();
+    bool verbose = parameters.GetBooleanParameter("verbose");
+
+    STreeD::AData data(int(parameters.GetIntegerParameter("max-num-features")));
+    STreeD::ADataView train_data, test_data;
+
+    // Initialize the solver and the data based on the optimization task at hand
+    STreeD::Stopwatch stopwatch;
+    stopwatch.Initialise(0);
+
+    STreeD::AbstractSolver *solver;
+    std::string task = parameters.GetStringParameter("task");
+    if (verbose) { std::cout << "Reading data...\n"; }
+    if (task == "accuracy") {
+        solver = new STreeD::Solver<STreeD::Accuracy>(parameters, &rng);
+        STreeD::FileReader::ReadData<STreeD::Accuracy>(parameters, data, train_data, test_data, &rng);
+    } else if (task == "cost-complex-accuracy") {
+        solver = new STreeD::Solver<STreeD::CostComplexAccuracy>(parameters, &rng);
+        STreeD::FileReader::ReadData<STreeD::CostComplexAccuracy>(parameters, data, train_data, test_data, &rng);
+    } else if (task == "cost-sensitive") {
+        solver = new STreeD::Solver<STreeD::CostSensitive>(parameters, &rng);
+        STreeD::FileReader::ReadData<STreeD::CostSensitive>(parameters, data, train_data, test_data, &rng);
+    } else if (task == "instance-cost-sensitive") {
+        solver = new STreeD::Solver<STreeD::InstanceCostSensitive>(parameters, &rng);
+        STreeD::FileReader::ReadData<STreeD::InstanceCostSensitive>(parameters, data, train_data, test_data, &rng);
+    } else if (task == "f1-score") {
+        solver = new STreeD::Solver<STreeD::F1Score>(parameters, &rng);
+        STreeD::FileReader::ReadData<STreeD::F1Score>(parameters, data, train_data, test_data, &rng);
+    } else if (task == "group-fairness") {
+        solver = new STreeD::Solver<STreeD::GroupFairness>(parameters, &rng);
+        STreeD::FileReader::ReadData<STreeD::GroupFairness>(parameters, data, train_data, test_data, &rng);
+    } else if (task == "equality-of-opportunity") {
+        solver = new STreeD::Solver<STreeD::EqOpp>(parameters, &rng);
+        STreeD::FileReader::ReadData<STreeD::EqOpp>(parameters, data, train_data, test_data, &rng);
+    } else if (task == "prescriptive-policy") {
+        solver = new STreeD::Solver<STreeD::PrescriptivePolicy>(parameters, &rng);
+        STreeD::FileReader::ReadData<STreeD::PrescriptivePolicy>(parameters, data, train_data, test_data, &rng);
+    } else if (task == "survival-analysis") {
+        solver = new STreeD::Solver<STreeD::SurvivalAnalysis>(parameters, &rng);
+        STreeD::FileReader::ReadData<STreeD::SurvivalAnalysis>(parameters, data, train_data, test_data, &rng);
+    } else if (task == "cox-survival-analysis") {
+        solver = new STreeD::Solver<STreeD::CoxSurvivalAnalysis>(parameters, &rng);
+        STreeD::FileReader::ReadData<STreeD::CoxSurvivalAnalysis>(parameters, data, train_data, test_data, &rng);
+    } else {
 		std::cout << "Encountered unknown optimization task: " << task << std::endl;
 		exit(1);
 	}

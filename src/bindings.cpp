@@ -20,7 +20,8 @@ enum task_type {
     group_fairness,
     equality_of_opportunity,
     prescriptive_policy,
-    survival_analysis
+    survival_analysis,
+    cox_survival_analysis
 };
 
 task_type get_task_type_code(std::string& task) {
@@ -33,6 +34,7 @@ task_type get_task_type_code(std::string& task) {
     else if (task == "equality-of-opportunity") return equality_of_opportunity;
     else if (task == "prescriptive-policy") return prescriptive_policy;
     else if (task == "survival-analysis") return survival_analysis;
+    else if (task == "cox-survival-analysis") return cox_survival_analysis;
     else {
         std::cout << "Encountered unknown optimization task: " << task << std::endl;
         exit(1);
@@ -249,7 +251,9 @@ PYBIND11_MODULE(cstreed, m) {
     ExposeFloatProperty(parameter_handler, "upper-bound", "upper_bound");
     ExposeStringProperty(parameter_handler, "ppg-teacher-method", "ppg_teacher_method");
     ExposeFloatProperty(parameter_handler, "discrimination-limit", "discrimination_limit");
-    
+    ExposeFloatProperty(parameter_handler, "l1-ratio", "l1_ratio");
+    ExposeStringProperty(parameter_handler, "survival-validation", "survival_validation");
+
     /*************************************
            Solver
      ************************************/
@@ -258,6 +262,7 @@ PYBIND11_MODULE(cstreed, m) {
     DefineSolver<CostComplexAccuracy>(m, "CostComplexAccuracy");
     DefineSolver<F1Score>(m, "F1Score");
     DefineSolver<SurvivalAnalysis>(m, "Survival");
+    DefineSolver<CoxSurvivalAnalysis>(m, "CoxSurvival");
     DefineSolver<PrescriptivePolicy>(m, "PrescriptivePolicy");
     DefineSolver<GroupFairness>(m, "GroupFairness");
     DefineSolver<EqOpp>(m, "EqOpp");
@@ -293,6 +298,7 @@ PYBIND11_MODULE(cstreed, m) {
             case equality_of_opportunity: solver = new Solver<EqOpp>(parameters, &rng); break;
             case prescriptive_policy: solver = new Solver<PrescriptivePolicy>(parameters, &rng); break;
             case survival_analysis: solver = new Solver<SurvivalAnalysis>(parameters, &rng); break;
+            case cox_survival_analysis: solver = new Solver<CoxSurvivalAnalysis>(parameters, &rng); break;
         }
         return solver;
     }, py::keep_alive<0, 1>());
@@ -305,6 +311,11 @@ PYBIND11_MODULE(cstreed, m) {
         .def(py::init<int, double>())
         .def_property_readonly("event", &SAData::GetEvent)
         .def_property_readonly("hazard", &SAData::GetHazard);
+
+    py::class_<CSAData>(m, "CSAData")
+    .def(py::init<int, std::vector<double>& >())
+    .def_property_readonly("event", &CSAData::GetEvent)
+    .def_property_readonly("vars", &CSAData::GetVars);
 
     py::class_<PPGData>(m, "PPGData")
         .def(py::init<int, double, double, std::vector<double>&, int, std::vector<double>&>())

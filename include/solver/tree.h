@@ -98,8 +98,7 @@ namespace STreeD {
 			const std::vector<int>& flipped_features, const ADataView& test_data, InternalTestScore<OT>& result) const {
 			result.average_path_length += test_data.Size();
 			if (IsLabelNode()) {
-				result.test_test_value = OT::TestAdd(result.test_test_value, task->GetTestLeafCosts(test_data, context, label));
-				return;
+				result.test_test_value = OT::TestAdd(result.test_test_value, task->GetTestLeafCosts(test_data, context, label));return;
 			}
 			typename OT::ContextType left_context, right_context;
 			task->GetLeftContext(test_data, context, feature, left_context);

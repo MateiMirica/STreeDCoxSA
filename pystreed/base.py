@@ -16,7 +16,7 @@ class BaseSTreeDSolver(BaseEstimator):
     _parameter_constraints: dict = {
         "optimization_task": [StrOptions({"accuracy", "cost-complex-accuracy",  "cost-sensitive", "f1-score",
                                           "group-fairness", "equality-of-opportunity", "prescriptive-policy",
-                                            "survival-analysis"})],
+                                          "survival-analysis"})],
         "max_depth": [Interval(numbers.Integral, 0, 20, closed="both")],
         "max_num_nodes": [Interval(numbers.Integral, 0, 1048575, closed="both"), None],
         "min_leaf_node_size": [Interval(numbers.Integral, 1, None, closed="left")],
@@ -30,27 +30,27 @@ class BaseSTreeDSolver(BaseEstimator):
         "continuous_binarize_strategy": [StrOptions({"tree", "quantile", "uniform"})],
     }
 
-    def __init__(self, 
-            optimization_task: str,
-            max_depth: int = 3,
-            max_num_nodes: Optional[int] = None,
-            min_leaf_node_size: int = 1,
-            time_limit: float = 600,
-            cost_complexity : float = 0.01,
-            feature_ordering : str = "gini", 
-            hyper_tune: bool = False,
-            use_branch_caching: bool = False,
-            use_dataset_caching: bool = True,
-            use_terminal_solver: bool = True,
-            use_similarity_lower_bound: bool = True,
-            use_upper_bound: bool = True,
-            use_lower_bound: bool = True,
-            upper_bound: float = 2**31-1,
-            verbose: bool = False,
-            random_seed: int = 27, 
-            continuous_binarize_strategy: str = 'quantile',
-            n_thresholds: int = 5,
-            n_categories: int = 5):
+    def __init__(self,
+                 optimization_task: str,
+                 max_depth: int = 3,
+                 max_num_nodes: Optional[int] = None,
+                 min_leaf_node_size: int = 1,
+                 time_limit: float = 600,
+                 cost_complexity : float = 0.01,
+                 feature_ordering : str = "gini",
+                 hyper_tune: bool = False,
+                 use_branch_caching: bool = False,
+                 use_dataset_caching: bool = True,
+                 use_terminal_solver: bool = True,
+                 use_similarity_lower_bound: bool = True,
+                 use_upper_bound: bool = True,
+                 use_lower_bound: bool = True,
+                 upper_bound: float = 2**31-1,
+                 verbose: bool = False,
+                 random_seed: int = 27,
+                 continuous_binarize_strategy: str = 'quantile',
+                 n_thresholds: int = 5,
+                 n_categories: int = 5):
         """
         Construct a BaseSTreeDSolver
 
@@ -76,7 +76,7 @@ class BaseSTreeDSolver(BaseEstimator):
             n_thresholds: the number of thresholds to use per continuous feature
             n_categories: the number of categories to use per categorical feature
         """
-        
+
         self.optimization_task = optimization_task
         self.max_depth = max_depth
         self.max_num_nodes = max_num_nodes
@@ -97,7 +97,7 @@ class BaseSTreeDSolver(BaseEstimator):
         self.continuous_binarize_strategy = continuous_binarize_strategy
         self.n_thresholds = n_thresholds
         self.n_categories = n_categories
-        
+
         self.fit_result = None
         self._solver = None
         self._label_type = np.int32
@@ -134,14 +134,14 @@ class BaseSTreeDSolver(BaseEstimator):
         self._params.use_upper_bound = self.use_upper_bound
         self._params.use_lower_bound = self.use_lower_bound
         self._params.upper_bound = self.upper_bound
-    
+
     def get_solver_params(self):
         return self._solver._get_parameters()
 
     def _should_reset_solver(self, X, y, extra_data):
         """
-        Check if the solver should reset for a new fit. 
-        self._reset_parameters contains a list of parameters that, 
+        Check if the solver should reset for a new fit.
+        self._reset_parameters contains a list of parameters that,
         when changed, invalidate the solver's cache
         """
         if self._solver is None: return True
@@ -155,7 +155,7 @@ class BaseSTreeDSolver(BaseEstimator):
                 changed.append(key)
         if any(s in changed for s in self._reset_parameters):
             return True
-        return False        
+        return False
 
     def _process_fit_data(self, X, y=None):
         """
@@ -164,14 +164,14 @@ class BaseSTreeDSolver(BaseEstimator):
         with warnings.catch_warnings():
             warnings.filterwarnings(action="ignore", category=FutureWarning)
             X = self._validate_data(X, ensure_min_samples=2, dtype=np.intc)
-            
+
             if not y is None:
                 y = check_array(y, ensure_2d=False, dtype=self._label_type)
                 if X.shape[0] != y.shape[0]:
                     raise ValueError('x and y have different number of rows')
                 return X, y
             return X
-    
+
     def _process_score_data(self, X, y=None):
         """
         Validate the X and y data before calling score
@@ -179,14 +179,14 @@ class BaseSTreeDSolver(BaseEstimator):
         with warnings.catch_warnings():
             warnings.filterwarnings(action="ignore", category=FutureWarning)
             X = self._validate_data(X, reset=False, dtype=np.intc)
-            
+
             if not y is None:
                 y = check_array(y, ensure_2d=False, dtype=self._label_type)
                 if X.shape[0] != y.shape[0]:
                     raise ValueError('x and y have different number of rows')
                 return X, y
             return X
-    
+
     def _process_predict_data(self, X):
         """
         Validate the X and y data before calling predict
@@ -255,11 +255,11 @@ class BaseSTreeDSolver(BaseEstimator):
             self._initialize_param_handler()
             self._solver._update_parameters(self._params)
         self._post_initialize_solver()
-                
+
         start_time = time.time()
         self.fit_result = self._solver._solve(X, y, extra_data)
         duration = time.time() - start_time
-        
+
         if duration > self.time_limit:
             warnings.warn("Fitting exceeds time limit.", stacklevel=2)
         if not self.fit_result.is_feasible():
@@ -273,7 +273,7 @@ class BaseSTreeDSolver(BaseEstimator):
             print("Tree depth: ", self.fit_result.tree_depth(), " \tBranching nodes: ", self.fit_result.tree_nodes())
             if not self.fit_result.is_optimal():
                 print("No proof of optimality!")
-        
+
         return self
 
     def is_fitted(self):
@@ -298,7 +298,7 @@ class BaseSTreeDSolver(BaseEstimator):
         X = self._process_predict_data(X)
         extra_data = self._process_extra_data(X, extra_data)
         return self._solver._predict(self.fit_result, X, extra_data)
-    
+
     def score(self, X, y_true, extra_data=None):
         """
         Computes the score for the given input feature data
@@ -327,24 +327,24 @@ class BaseSTreeDSolver(BaseEstimator):
         """
         check_is_fitted(self, "fit_result")
         return self.fit_result.tree_nodes()
-    
+
     def get_depth(self):
         """
         Returns the depth of the fitted tree (a single leaf node is depth zero)
         """
         check_is_fitted(self, "fit_result")
         return self.fit_result.tree_depth()
-    
+
     def get_tree(self):
         """
         Returns the fitted tree
         """
         check_is_fitted(self, "tree_")
         return self.tree_
-    
+
     def _get_label_str(self, label, label_names=None):
         return str(label) if not isinstance(label, int) or label_names is None else label_names[label]
-    
+
     def _get_predicate_str(self, feature, feature_names=None):
         if feature_names is None:
             return f"Feature {feature}"
@@ -374,7 +374,7 @@ class BaseSTreeDSolver(BaseEstimator):
         If label_names is not None, use the names in label_names for pretty printing (only for classification)
         """
         check_is_fitted(self, "tree_")
-        
+
         if feature_names is None and hasattr(self, "feature_names_in_"):
             feature_names = self.feature_names_in_
 
@@ -401,7 +401,7 @@ class BaseSTreeDSolver(BaseEstimator):
             fh.write("edge [fontname=\"helvetica\", fontsize=\"6\"] ;\n")
             self._recursive_export_dot(fh, self.tree_, 0, feature_names, label_names)
             fh.write("}")
-    
+
     def _export_dot_leaf_node(self, fh, node, node_id, label_names, color=(200, 200, 200)):
         label =  self._get_label_str(node.label, label_names)
         hex_color = "#{:02x}{:02x}{:02x}".format(*color)

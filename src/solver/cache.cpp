@@ -78,5 +78,6 @@ namespace STreeD {
 	template class Cache<EqOpp>;
 	template class Cache<PrescriptivePolicy>;
 	template class Cache<SurvivalAnalysis>;
+	template class Cache<CoxSurvivalAnalysis>;
 
 }
