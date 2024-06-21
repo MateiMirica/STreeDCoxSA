@@ -2,14 +2,6 @@
 [![Pip install](https://github.com/algtudelft/pystreed/actions/workflows/pip.yml/badge.svg)](https://github.com/algtudelft/pystreed/actions/workflows/pip.yml)
 
 # STreeD: Separable Trees with Dynamic programming
-By: Jacobus G. M. van der Linden [(e-mail)](mailto:J.G.M.vanderLinden@tudelft.nl)
-
-STreeD is a framework for optimal binary decision trees with _separable_ optimization tasks. A separable optimization task is a task that can be optimized separately for the left and right subtree. The current STreeD Framework implements a broad set of such optimization tasks, from group fairness constraints to survival analysis. For an explanation of each application, see below.
-For details on what tasks are separable and how the algoritm works, see our paper.
-
-If you use STreeD, please cite our paper:
-
-* Van der Linden, Jacobus G. M., Mathijs M. de Weerdt, and Emir Demirović. "Necessary and Sufficient Conditions for Optimal Decision Trees using Dynamic Programming." _Advances in Neural Information Processing Systems_. 2023. [pdf](https://proceedings.neurips.cc/paper_files/paper/2023/hash/1d5fce9627e15c84db572a66e029b1fc-Abstract-Conference.html) 
 
 ## Python usage
 
@@ -30,28 +22,53 @@ pip install .
 ```
 
 ### Example usage
-`pystreed` can be used, for example, as follows:
+`pystreed` can be used, for example, as follows (make sure the file is present):
 
 ```python
-from pystreed import STreeDClassifier
-from sklearn.metrics import accuracy_score
-import pandas as pd
+data = pd.read_csv("data/cox-survival-analysis/UnempDur.csv", delimiter=",").fillna(0)
+data = np.array(data)
+x_categ_columns = [8]
+x_categ_columns2 = [5]
+x_cont_columns = [3, 4, 5, 6, 7, 8]
 
-# Read data
-df = pd.read_csv("data/classification/anneal.csv", sep=" ", header=None)
-X = df[df.columns[1:]]
-y = df[0]
+for c in x_categ_columns:
+ dict = {}
+ val = 0
+ for i in range(len(data)):
+  if not (data[i][c] in dict):
+   dict[data[i][c]] = val
+   val = val + 1
+  data[i][c] = dict[data[i][c]]
 
-# Fit the model
-model = STreeDClassifier(max_depth = 3, max_num_nodes=5)
+# Create the y array with 'time' and 'event'
+y = np.array(data[:, [2, 1]])
+
+# Select columns for the x array
+X = np.array(data[:, x_cont_columns])
+
+times = np.array(y[:, 0])
+events = []
+
+for i in range(len(y)):
+ if y[i][1] == 1:
+  events.append(True)
+ else:
+  events.append(False)
+
+events = np.array(events)
+
+# Train an optimal cox survival tree model
+model = STreeDCoxSurvivalAnalysis(max_depth=2, max_num_nodes=2, l1_ratio=0.4, hyper_tune=True)
+
 model.fit(X, y)
 
-model.print_tree()
+# Measure the performance of the model
+prediction = model.predict(X)
+prediction = -prediction
+result = concordance_index_censored(events, times, prediction)
+print("Harrell's concordance index: ", result[0])
+print("Objective score: ", model.score(X, y))
 
-yhat = model.predict(X)
-
-accuracy = accuracy_score(y, yhat)
-print(f"Train Accuracy Score: {accuracy * 100}%")
 ```
 
 
@@ -96,126 +113,3 @@ Alternatively, docker can be used to build and run STreeD:
 docker build -t streed .
 docker container run -it streed /STreeD/build/STREED -task accuracy -file /STreeD/data/cost-sensitive/car/car-train-1.csv -max-depth 3 -max-num-nodes 7
 ```
-
-## Applications
-Currently, STreeD implements the following optimization tasks:
-
-### Classification
-`STreeDClassifier` implements the following optimization tasks:
-
-* `accuracy`: Minimizes the misclassification score. 
-* `cost-complex-accuracy`: Minimizes the misclassification score plus the cost for adding a branching node by the parameter `cost_complexity`.
-* `f1-score`: Minimizes the F1-score.
-
-See [examples/accuracy_example.py](examples/accuracy_example.py) for an example.
-
-### Cost-Sensitive Classification
-`STreeDCostSensitiveClassifier` implements a cost-sensitive classifier. Costs can both be attributed to features and misclassifications.
-
-The costs can be specified with `CostSpecifier` object. This object is either initialized with a file name for the cost specification and the number of classes; or with the misclassification cost matrix, and the cost specifier per feature. When testing a feature in a branch node, the cost for that feature is paid for every instance that passes through it. When another feature from the same group was tested before, the discounted cost is paid. When another feature that is binarized from the same original feature is already tested, the cost is zero.
-
-Note that currently `STreeDCostSensitiveClassifier` does not support automatic binarization.
-
-See [examples/cost_sensitive_example.py](examples/cost_sensitive_example.py) for an example.
-
-### Instance-Cost-Sensitive Classification
-`STreeDInstanceCostSensitiveClassifier` implements an instance-cost-sensitive classifier. Each instance can  have a different misclassification cost per label.
-
-The costs can be specified with a `CostVector` object. For each instance, initialize a `CostVector` object with a list of the costs for each possible label. 
-
-See [examples/instance_cost_sensitive_example.py](examples/instance_cost_sensitive_example.py) for an example.
-
-### Classification under a Group Fairness constraint
-`STreeDGroupFairnessClassifier` implements a classifier that satisfies a group fairness constraint.
-The maximum amount of discrimination on the training data can be specified by the `discrimination-limit` parameter, e.g., 0.01 for maximum of 1% discrimination.
-
-Currently two fairness constraint optmization tasks are implemented:
-* `group-fairness`: This satisfies a _demographic parity_ constraint. Demographic parity requires that the positive rates for both groups is equal.
-* `equality-of-opportunity`: This satisfies a _equality of opportunity_ constraint. Equality of opportunity requires that the _true_ positive rates for both groups is equal.
-
-Note:
-1. `STreeDGroupFairnessClassifier` assumes binary classification (only two labels: positive = 1, negative = 0).
-2. `STreeDGroupFairnessClassifier` assumes that the first binary feature column is the discrimination-sensitive feature. Otherwise the sensitive feature can be specified with the `sensitive_feature` parameter.
-
-See [examples/group_fair_example.py](examples/group_fair_example.py) for an example.
-
-### Prescriptive policy generation
-`STreeDPrescriptivePolicyGenerator` implements a policy generation solver. Counterfactual scores need to be provided. The current implementation allows for three different teacher methods, as specified by the `teacher_method` parameter:
-* `DM`: the _direct method_ or _Regress & Compare_ method. This teacher specifies for every treatment (label) what the expected outcome is.
-* `IPW`: the _inverse propensity weighting_ method. This teacher provides the propensity scores mu(x, k): the probability of treatment k happening for feature vector x.
-* `DR`: the _doubly robust_ method: a combination of the direct methodand the inverse propensity weighting method.
-
-The teacher data needs to be passed to the solver by initializing a `PPGData` object for every instance. The PPGData initializer expects the following parameters:
-* `historic_treatment : int` : the historic treatment label
-* `historic_outcome : float` : the historic outcome
-* `propensity_score : float` : the propensity score for the historic treatment
-* `predicted_outcome : List[float]` : the _regress & compare_ prediction for each possible treatment
-Optional (for testing)
-* `optimal_treatment : int` : the optimal treatment
-* `counterfactual_outcome : List[float]` : the counterfactual outcome 
-
-Only the data which will be used by the teacher method needs to be specified, the rest can be initialized with zero's.
-
-See [examples/prescriptive_policy_example.py](examples/prescriptive_policy_example.py) for an example.
-
-### Survival analysis
-`STreeDSurvivalAnalysis` implements an optimal survival tree method, by optimizing the proportional hazard function of LeBlanc and Crowly, "Relative Risk for Censored Survival Data," _Biometrics_ 48.2 (1992): 411-425. Each leaf node predicts a risk factor $\theta$ which is used to shift the base hazard model $\hat{\Lambda}(t)$.  The Kaplan-Meier estimator is used as a stepwise survival function $\hat{S}(t) = e^{-\theta \hat{\Lambda}(t)}$.
-
-Instead of a label, the input data expects a two-dimensional array with for each instance 1) a binary censoring indicator and 2) a time-of-event (death or censoring).
-
-See [examples/survival_analysis_example.py](examples/survival_analysis_example.py) for an example.
-
-If you use STreeD for _survival analysis_, please cite our paper:
-
-* Huisman, T., Jacobus G. M. van der Linden, and Emir Demirović. "Optimal Survival Trees: A Dynamic Programming Approach." _Proceedings of AAAI-24_ (Accepted, not published). 2024. 
-
-## Parameters
-STreeD can be configured by the following parameters:
-* `max_depth` : The maximum depth of the tree. Note that a tree of depth zero has a single leaf node. A tree of depth one has one branching node and two leaf nodes.
-* `max_num_nodes` : The maximum number of _branching_ nodes in the tree.
-* `min_leaf_node_size` : The minimum number of samples required in each leaf node.
-* `time_limit` : The run time limit in seconds. If the time limit is exceeded a possibly non-optimal tree is returned.
-* `feature_ordering` : The order in which the features are considered for branching. Default is `"gini"` which sorts the features by gini-impurity decrease. The alternative (and default for survival analysis) is `"in-order"` which considers the feature in order of appearance.
-* `hyper_tune` : Use STreeD's special hyper-tune method.
-* `use_branch_caching` : Enables or disables the use of branch caching.
-* `use_dataset_caching` : Enables or disables the use of dataset caching.
-* `use_terminal_solver` : Enables or disables the use of the special solver for trees of depth two.
-* `use_similarity_lower_bound` : Enables or disables the use of the similarity lower bound.
-* `use_upper_bound` : Enables or disables the use of upper bounds.
-* `use_lower_bound` : Enables or disables the use of lower bounds.
-* `verbose` : Enable or disable verbose output.
-* `random_seed` : The random seed.
-
-## Binarization
-STreeD provides optimal decision trees for a given binarization. To help with the binarization, the `pystreed` package provides automatic binarization of categorical and continuous features.
-
-Categorical features can be specified in the `fit` method by using the `categorical_columns` parameter. These features are binarized using one-hot encoding. The maximum number of categories per categorical feature is specified with the `n_categories` parameter. If the categorical feature exceeds this number, the `n_categories - 1` most common categories are encoded with one binary feature each, and all other categories are encoded with an 'other' category.
-
-Continuous features are automatically recognized by STreeD. Each continuous feature is binarized into a number of binary features as specified by the `n_thresholds` parameter. Each binary feature has the form `x <= t`, with `x` the continuous feature and `t` the threshold.
- Currently STreeD provides three ways of automatically binarizing continuous features, as specified by the `continuous_binarize_strategy` parameter:
-* `uniform` : Select thresholds uniformly from the interval `[min(x), max(x)]`
-* `quantile` : Select thresholds uniformly from the quantile distribution
-* `tree` : Train a CART tree using only one continuous feature with up to `n_thresholds` branching nodes, and select the thresholds from the branching nodes.
-
-Note that STreeD provides an optimal decision tree for the given binarization. The binarization should therefore be chosen with care.
-
-See [examples/binarize_example.py](examples/binarize_example.py) for an example.
-
-## Overfitting and tuning
-
-To prevent overfitting the size of the tree can be tuned. This can be done in the standard way using `scikit-learn` methods, see [examples/gridsearch_example.py](examples/gridsearch_example.py). 
-
-For improving runtime performance, STreeD also provides a custom tuning method that in some cases can reuse the cache from previous runs.
-To use this, initialize the STreeD model with `hyper_tune=True`.
-
-STreeD's default method of hypertuning directly tunes the depth and the number of branching nodes using five-fold cross validation. Some optimization tasks specify their custom tuning method, such as `cost-complex-accuracy` which tunes the `cost_complexity` parameter.
-
-## Miscellaneous 
-* STreeD assumes classification labels are in the range `0 ... n_labels - 1`. Not meeting this assumption may influence the algorithm's performance. Use sklearn's `LabelEncoder` to prevent this.
-
-## References
-This work is a continuation of the following previous papers (with corresponding repositories)
-
-1. Demirović, Emir, et al. "Murtree: Optimal decision trees via dynamic programming and search." _Journal of Machine Learning Research_ 23.26 (2022): 1-47. [pdf](https://www.jmlr.org/papers/volume23/20-520/20-520.pdf) / [source](https://bitbucket.org/EmirD/murtree/src/master/)
-2. Demirović, Emir, and Peter J. Stuckey. "Optimal decision trees for nonlinear metrics." _Proceedings of the AAAI conference on artificial intelligence._ Vol. 35. No. 5. 2021. [pdf](https://ojs.aaai.org/index.php/AAAI/article/download/16490/16297) / [source](https://bitbucket.org/EmirD/murtree-bi-objective/src/master/)
-3. Van der Linden, Jacobus G. M., Mathijs M. de Weerdt, and Emir Demirović. "Fair and Optimal Decision Trees: A Dynamic Programming Approach." _Advances in Neural Information Processing Systems_. 2022. [pdf](https://openreview.net/pdf?id=LCIZmSw1DuE) / [source](https://gitlab.tudelft.nl/jgmvanderlinde/dpf)
