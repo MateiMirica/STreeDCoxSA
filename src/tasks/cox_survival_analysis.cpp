@@ -244,6 +244,7 @@ namespace STreeD {
         std::sort(test.begin(), test.end());
 
         std::vector<std::vector<double>> x;
+        std::vector<std::vector<double>> x_c;
         std::vector<std::vector<double>> x_test;
         int nrows_test = test.size();
         int nrows = data.GetInstancesForLabel(0).size() - nrows_test;
@@ -271,6 +272,7 @@ namespace STreeD {
             }
             else {
                 x.push_back(vars);
+                x_c.push_back(vars);
                 times.push_back(time);
                 events.push_back(event);
             }
@@ -333,7 +335,7 @@ namespace STreeD {
                     coef[i][j] = coef_path[j * ncols + i] / x_scale[i];
             }
 
-            std::vector<std::vector<double> > predictions = dotProduct(x, coef);
+            std::vector<std::vector<double> > predictions = dotProduct(x_c, coef);
             std::vector<std::vector<double> > offset = dotProduct(std::vector<std::vector<double>>(1, x_offset), coef);
 
             std::vector<double> unique_times;
@@ -346,7 +348,7 @@ namespace STreeD {
             for (int i = 0; i < nalphas; ++i) {
                 std::vector<double> pred_col(nrows);
                 for (int j = 0; j < nrows; ++j)
-                    pred_col[j] = predictions[j][i];
+                    pred_col[j] = predictions[j][i] - offset[0][i];
                 models.push_back(BreslowEstimatorFit(pred_col, unique_times, n_events, n_at_risk));
                 models.back().offset = offset[0][i];
                 models.back().alpha = final_alphas[i];
@@ -361,7 +363,7 @@ namespace STreeD {
             for (int i = 0; i < nalphas; ++i) {
                 std::vector<double> pred_col_test(nrows_test);
                 for (int j = 0; j < nrows_test; ++j)
-                    pred_col_test[j] = predictions_test[j][i];
+                    pred_col_test[j] = predictions_test[j][i] - models[i].offset;
                 double score = 0;
                 if (validation == "log-like")
                     score = getLeafCosts(pred_col_test, times_test, events_test);
@@ -379,6 +381,17 @@ namespace STreeD {
     // Solve a leaf node by finding the minimum negative log-likelihood estimate for beta with its corresponding loss
     Node <CoxSurvivalAnalysis>
     CoxSurvivalAnalysis::SolveLeafNode(const ADataView &data, const ContextType &context) const {
+        int ncols = 0, nrows = data.GetInstancesForLabel(0).size(), nevents = 0;
+        for (int i = 0; i < nrows; ++i) {
+            auto instance = static_cast<const Instance<double, CSAData> *>(data.GetInstancesForLabel(0)[i]);
+            int event = instance->GetExtraData().GetEvent();
+            std::vector<double> vars = instance->GetExtraData().GetVars();
+            ncols = vars.size();
+            nevents += event;
+        }
+        if (nevents < 10 * ncols) {
+            return Node<CoxSurvivalAnalysis>(Fit(), DBL_MAX);
+        }
         Fit model = fit(data, l1_ratio, validation_technique);
         return Node<CoxSurvivalAnalysis>(model, GetLeafCosts(data, context, model));
     }
